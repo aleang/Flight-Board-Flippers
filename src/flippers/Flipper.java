@@ -1,24 +1,36 @@
 package flippers;
 public class Flipper {
-	int[] place;	int curr, c, index;
+	public static char[] charSet;
+	char tileSlots[], myCurrentChar, myGoalChar;	
+	int mySlotIndex, myCharIndexFromSet;
 	boolean finish = false;
 	
-	public Flipper(int[] i, int index){
-		place = i;		this.index = index;
-		curr = i[index];
+	public Flipper(char[] i, int index){
+		tileSlots = i;
+		this.mySlotIndex = index;
+		tileSlots[mySlotIndex] = ' ';
+		myCurrentChar = tileSlots[mySlotIndex];
+		
 	}
-	public void newWord(char s) {
-		c = s-64;
-		if (s == 32) c = 0;
+	public void assignNewChar(char newChar) {
+		myGoalChar = newChar;
 		finish = false;
 	}
-	public void flip() {
-		if (curr != c){
-			curr = (curr+1) % 27;
-			place[index] = curr;
+	public boolean doAFlip() {
+		if (myCurrentChar != myGoalChar){
+			myCharIndexFromSet = (myCharIndexFromSet+1) % charSet.length;
+			myCurrentChar = charSet[myCharIndexFromSet];
+			tileSlots[mySlotIndex] = myCurrentChar;
 		} else {
 			finish = true;
 		}
+		
+		return finish;
 	}
-
+	public int getIndexFromSet(char search) {
+		for (int i = 0; i < charSet.length; i++) {
+			if (search == charSet[i]) return i;
+		}
+		return -1;
+	}
 }

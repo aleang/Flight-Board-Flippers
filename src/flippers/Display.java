@@ -1,73 +1,105 @@
 package flippers;
+import static java.lang.System.out;
+
 import java.awt.Graphics;
 import java.awt.Image;
 import java.util.ArrayList;
+import java.util.HashMap;
+
 import javax.swing.Timer;
 
 public class Display {
-	Image[] db = new Image[27];
-	int count = 0;		int[] place;
-	char[] set;			ArrayList<Flipper> f;
+	HashMap<Character, Image> imagesHashMap;
+	char[] charArray, charTileSlots;			
+	ArrayList<Flipper> flippersList;
 	static Timer t;
 	
 	public Display(javax.swing.Timer t2, int numberOfFlippers) {
-		f = new ArrayList<Flipper>();
+		flippersList = new ArrayList<Flipper>();
 		this.t = t2;
-		place = new int[numberOfFlippers];
+		charTileSlots = new char[numberOfFlippers];
+		imagesHashMap = new HashMap<Character, Image>();
 	}
 	
-	void giveImg(Image i, char c){
-		if (c == 32) {
-			db[0] = i;
-		} else {
-			db[c-64] = i;
-		} count++;
+	void setImageAndChar(Image givenImage, char givenChar){
+		imagesHashMap.put(givenChar,  givenImage);
 	}
-	
-	public void newWord(String word) {
-	    t.start();
-	    f.clear();
-	   
-	    String temp = "";
-	    // sanitise 'word'
-	    for (char ch : word.toCharArray()) {
-	    	if (Character.isLetter(ch) || ch == ' ') temp += ch;
-	    }
-	    word = temp.toUpperCase();
-	    
-		set = word.toCharArray();
-		for (int i=0; i<place.length; i++){
-			//place[i] = set[i]-64;
-			//if (set[i] == 32) place[i] = 0;
-			Flipper e = new Flipper(place, i);
-			if (i < set.length) {
-				e.newWord(set[i]);
+	public void printGreeting(String string) {
+		charArray = string.toCharArray();
+		for (int i = 0; i < charTileSlots.length; i++){
+			Flipper e = new Flipper(charTileSlots, i);
+			if (i < charArray.length) {
+				e.assignNewChar(charArray[i]);
 			} else {
-				e.newWord(' ');
+				// remaining flippers are 'spaces'
+				e.assignNewChar(' ');
 			}
-			f.add(e);
+			flippersList.add(e);
 		}
-		//place = new int[20];	
+	}
+
+	public void printf(String format, Object ... objs) {
+		print(String.format(format, objs));
+	}
+	public void print(String word) {
+	    
+	    
+	    // tidy up and sanitise 'word'
+	    word = word.toUpperCase();
+	    String temp = "";
+	    for (char ch : word.toCharArray()) {
+	    	if (Character.isLetter(ch) 
+	    			|| ch == ' ' 
+	    			|| Character.isDigit(ch)
+	    			) 
+	    		temp += ch;
+	    }
+	    
+	    //flippersList.clear();
+	    
+		charArray = word.toCharArray();
+		for (int i = 0; i < charTileSlots.length; i++){
+
+			Flipper e = flippersList.get(i);
+			if (i < charArray.length) {
+				e.assignNewChar(charArray[i]);
+			} else {
+				// no more letters left
+				e.assignNewChar(' ');
+			}
+		}
+		t.start();
 	}
 	void draw(Graphics g){
-		for (int i=0; i < place.length; i++){
-			Image j = db[place[i]];
+		for (int i=0; i < charTileSlots.length; i++){
+			Image j = imagesHashMap.get(charTileSlots[i]);
+					//imagesArray[tileSlots[i]];
 			g.drawImage(j, i*25 + 15, 15, null);
 		}
 		//g.drawImage(db[0], 0, 0, null);
 	}
-	void println(Object o){System.out.println(o.toString());}
-	void println(){System.out.println();}
-	void print(Object o){System.out.print(o.toString());}
 
-	boolean timer() {
+	boolean doATickAndFlip() {
 		boolean allFinish = true;
-		for (Flipper p: f){
-			p.flip();
+		for (Flipper p: flippersList){
+			p.doAFlip();
 			allFinish = allFinish && p.finish;
 		}
 		return allFinish;
 	}
+
+	public void updateCharSet() {
+		char[] charSet = new char[imagesHashMap.size()];
+		int i = 0;
+		for (char c: imagesHashMap.keySet()) {
+			charSet[i++] = c;
+		}
+		java.util.Arrays.sort(charSet);
+		Flipper.charSet = charSet;
+		//out.printf("loaded %d images", charSet.length);
+		//out.println(imagesHashMap.keySet());
+	}
+
 
 	
 }

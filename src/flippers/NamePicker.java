@@ -40,45 +40,19 @@ public class NamePicker extends JPanel implements ActionListener{
 	String fileName = "names.txt";
 	CustomField input; 	
 	String name;
-	Display dp;
-	Timer t;
+	Display displayFlipperPanel;
+	Timer timer;
 	JTextArea txtAreaData;
 	
-	public NamePicker(CustomField txtUserInput, JTextArea txtAreaData) {
-	    t = new Timer(50, this);
+	public NamePicker() {
+	    timer = new Timer(50, this);
+	    displayFlipperPanel = new Display(timer, NUMBER_OF_FLIPPERS);
+	    loadLetters();
+		displayFlipperPanel.printGreeting("Welcome");
+	}
+	public void setInteractedComponents(CustomField txtUserInput, JTextArea txtAreaData) {
 		this.input = txtUserInput;
 		this.txtAreaData = txtAreaData;
-
-		/*    input = new CustomField(20);
-		input.setFont(new Font("Clear Sans",1,25));
-		input.addKeyListener(new KeyListener() {
-			public void keyReleased(KeyEvent e) {
-				int mm = e.getKeyCode();
-				if ((mm >=37 && mm <=40) || mm == 10 || mm == 8) return; //arrow and Enter keys
-				String r = word, s = input.getText(), t = s.toUpperCase();
-				char[] u = s.toCharArray();
-				if (validWord(u)){
-					word = t; input.setText(t);
-				} else {
-					input.setText(r);
-				}
-			}
-			boolean validWord(char[] t) {
-				if (t.length > 20) return false;
-				boolean valid = true;
-				char start1 = 'a', end1 = 'z', start2 = 'A', end2 = 'Z';
-				for (char c: t){
-					valid = valid && ((start1 <= c && c <= end1) || (start2 <=c && c<= end2) || c == ' ');
-				}
-				return valid;
-			}
-			public void keyTyped(KeyEvent arg0) {}
-			public void keyPressed(KeyEvent e) {}
-			
-		});
-		*/
-		loadLetters();
-		dp.newWord("Welcome");
 	}
 	public void btnGenerateActionPerformed(ActionEvent arg) {
         if (dataList.size() == 0) {
@@ -91,19 +65,19 @@ public class NamePicker extends JPanel implements ActionListener{
 	        name = temp;    
 	        dataList.remove(name);
         }
-		dp.newWord(name.toUpperCase()); 
+		displayFlipperPanel.print(name.toUpperCase()); 
 		input.requestFocusInWindow();
         JButton but = (JButton)arg.getSource();
         but.setToolTipText("Current word displayed is '" + name + '\'');
     }
 	public void btnDisplayActionPerformed() {
-		dp.newWord(input.getText());
+		displayFlipperPanel.print(input.getText());
 		input.setText("");
 		input.requestFocusInWindow();
 		repaint();
 	}
 	public void btnClearActionPerformed() {
-		dp.newWord(""); 
+		displayFlipperPanel.print(""); 
 		input.setText(""); 
 		repaint();
 		input.requestFocusInWindow();
@@ -118,9 +92,8 @@ public class NamePicker extends JPanel implements ActionListener{
             	dataList.add(temp);
             	input += temp + "\n";
             }
-            out.printf("Loaded %d lines%n", dataList.size());
             txtAreaData.setText(input);
-            dp.newWord("loaded");
+            displayFlipperPanel.printf("Loaded %d lines", dataList.size());
         } catch (FileNotFoundException e) {
             System.err.println("can't load file");
         }
@@ -128,11 +101,17 @@ public class NamePicker extends JPanel implements ActionListener{
     }
 	public void loadDataFromText(String[] strings) {
 		clearDataList();
+		
+		if (strings.length == 0 || (strings.length > 1 && strings[0].length() == 0)) {
+			// invalid data
+			displayFlipperPanel.print("no data loaded");
+			return;
+		}
+
 		for (String s: strings) {
 			dataList.add(s);
 		}
-		out.printf("Loaded %d lines%n", dataList.size());
-		dp.newWord("loaded");
+		displayFlipperPanel.print(String.format("Loaded %d entries", dataList.size()));
 	}
 	public void clearDataList() { dataList.clear(); }
 	
@@ -142,16 +121,23 @@ public class NamePicker extends JPanel implements ActionListener{
 	    }
 	}
 	private void loadLetters() {
-		dp = new Display(t, NUMBER_OF_FLIPPERS);
 		for (char c = 'A'; c <= 'Z'; c++){
 			String filename = c + ".png";
-			dp.giveImg(loadImage(filename), c);
+			displayFlipperPanel.setImageAndChar(loadImage(filename), c);
 		}
-		dp.giveImg(loadImage("_.png"), ' ');
+		for (char c = '0'; c <= '9'; c++){
+			String filename = c + ".png";
+			displayFlipperPanel.setImageAndChar(loadImage(filename), c);
+		} //*/
+		
+		displayFlipperPanel.setImageAndChar(loadImage("_.png"), ' ');
+		displayFlipperPanel.setImageAndChar(loadImage("dot.png"), '.');
+		displayFlipperPanel.updateCharSet();
+		
 	}
 
 	public void actionPerformed(ActionEvent e) {
-		if (dp.timer()) t.stop();
+		if (displayFlipperPanel.doATickAndFlip()) timer.stop();
 		repaint();
 	}
 	public void applyStyles(JButton ... btns){
@@ -161,7 +147,7 @@ public class NamePicker extends JPanel implements ActionListener{
 	}
 	public void paintComponent(Graphics g){
 		drawBG(g);
-		dp.draw(g);
+		displayFlipperPanel.draw(g);
 	}
 	
 	void drawBG(Graphics g){
@@ -189,6 +175,7 @@ public class NamePicker extends JPanel implements ActionListener{
 		BufferedImage img = null;
 		try {
 			URL url = NamePicker.class.getResource("/resources/" + f);
+			//out.println(f + url);
 		    img = ImageIO.read(url);
 		} catch (IOException e) {
 			e.printStackTrace();

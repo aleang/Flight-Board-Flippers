@@ -45,33 +45,39 @@ import org.eclipse.wb.swing.FocusTraversalOnArray;
 import java.awt.Component;
 import java.awt.Cursor;
 
-public class Application extends JFrame {
+public class MyApplication extends JFrame {
 
 	private JPanel contentPane;
 	private NamePicker flipperPanel;
 	private CustomField txtUserInput;
 	public JButton btnDisplay, btnGenerate, btnClear,
 	btnOpenFile, btnClearData;
-	public JPanel appMainMenu, dataPanelMenu;
+	public JPanel topBarPanel, dataPanelMenu;
 	final JTextArea txtAreaData;
 	private JButton btnMyHomepage;
-	private JPanel bottomMenuPane;
-	private JPanel mainPane;
+	private JPanel bottomBarPanel;
+	private JPanel mainPanel;
 	
 	/**
-	 * Launch the application.
+	 * Launch the MyApplication.
 	 */
 	public static void main(String[] args) {
-		
 		try {
 			UIManager.setLookAndFeel("com.seaglasslookandfeel.SeaGlassLookAndFeel");
+		} catch (Throwable e) {
+			e.printStackTrace();
+		}
+		
+		try {
+			//UIManager.setLookAndFeel("com.seaglasslookandfeel.SeaGlassLookAndFeel");
+			//UIManager.setLookAndFeel("ch.randelshofer.quaqua.QuaquaLookAndFeel");
 		} catch (Throwable e) {
 			e.printStackTrace();
 		}
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
-					Application frame = new Application();
+					MyApplication frame = new MyApplication();
 					frame.setVisible(true);
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -87,7 +93,9 @@ public class Application extends JFrame {
 	
 	
 	
-	public Application() {
+	public MyApplication() {
+		
+		// Initialise application layout **************************************
 		setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
 		setTitle("Board Flight Flipper");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -96,11 +104,38 @@ public class Application extends JFrame {
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		setContentPane(contentPane);
 		contentPane.setLayout(new BorderLayout(0, 0));
+		// end ****************************************************************
 		
-		appMainMenu = new JPanel();
-		contentPane.add(appMainMenu, BorderLayout.NORTH);
 		
+		// Create objects *****************************************************
+		txtAreaData = new JTextArea();
+		flipperPanel = new NamePicker();
+		MyDragDropListener myDragDropListener = new MyDragDropListener(flipperPanel);
+		new DropTarget(this.getContentPane(), myDragDropListener);
+		JDesktopPane desktopPane = new JDesktopPane();
+		mainPanel = new JPanel();
+		JInternalFrame intFrameData = new JInternalFrame("Data Panel");
+		btnOpenFile = new JButton("Browse File...");
+		dataPanelMenu = new JPanel();
+		JLabel lblOrDropA = new JLabel("or drop a text file");
+		JPanel panel = new JPanel();
+		JButton btnLoadToFlippers = new JButton("Load to Flippers");
+		btnClearData = new JButton("Clear");
+		topBarPanel = new JPanel();
+		btnDisplay = new JButton("Display");
 		txtUserInput = new CustomField(flippers.NamePicker.NUMBER_OF_FLIPPERS);
+		// end ****************************************************************
+
+		
+		// Initialise and add features	***************************************
+		flipperPanel.setInteractedComponents(txtUserInput, txtAreaData);
+		contentPane.add(desktopPane, BorderLayout.CENTER);
+		desktopPane.setLayout(new BorderLayout(0, 0));
+		
+		
+		desktopPane.add(topBarPanel, BorderLayout.NORTH);
+		
+		
 		txtUserInput.setToolTipText("Enter your own string");
 		txtUserInput.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -111,44 +146,37 @@ public class Application extends JFrame {
 		TextPrompt tp7 = new TextPrompt("Enter text to display", txtUserInput);
 		tp7.setForeground( Color.gray );
 		tp7.changeAlpha(0.5f);
-		appMainMenu.add(txtUserInput);
-		JDesktopPane desktopPane = new JDesktopPane();
+		topBarPanel.add(txtUserInput);
 		
-		// ************ Data Frame *********************************************
-		// Create objects;
-				txtAreaData = new JTextArea();
-				flipperPanel = new NamePicker(txtUserInput, txtAreaData);
-				
-		contentPane.add(desktopPane, BorderLayout.CENTER);
-		desktopPane.setLayout(new BorderLayout(0, 0));
 		
-		bottomMenuPane = new JPanel();
-		desktopPane.add(bottomMenuPane, BorderLayout.SOUTH);
-		bottomMenuPane.setLayout(new BorderLayout(0, 0));
-		
-		btnMyHomepage = new JButton("Visit my page");
-		btnMyHomepage.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent arg0) {
-				
-				Desktop desktop = Desktop.isDesktopSupported() ? Desktop.getDesktop() : null;
-			    if (desktop != null && desktop.isSupported(Desktop.Action.BROWSE)) {
-			        try {
-			            desktop.browse(new URI("http://bit.ly/pixport"));
-			        } catch (Exception e) {
-			            e.printStackTrace();
-			        }
-			    }
-			    
+		// ************* Flipper Frame ********************************
+		btnDisplay.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				flipperPanel.btnDisplayActionPerformed();
 			}
 		});
-		bottomMenuPane.add(btnMyHomepage, BorderLayout.EAST);
+		topBarPanel.add(btnDisplay);
 		
-		mainPane = new JPanel();
-		desktopPane.add(mainPane, BorderLayout.CENTER);
-		mainPane.setLayout(null);
+		btnGenerate = new JButton("Generate");
+		btnGenerate.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				flipperPanel.btnGenerateActionPerformed(e);
+			}
+		});
+		topBarPanel.add(btnGenerate);
+		
+		btnClear = new JButton("Clear");
+		btnClear.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				flipperPanel.btnClearActionPerformed();
+			}
+		});
+		topBarPanel.add(btnClear);
+		desktopPane.add(mainPanel, BorderLayout.CENTER);
+		mainPanel.setLayout(null);
 		JInternalFrame intFrameFlippers = new JInternalFrame("Flippers");
 		intFrameFlippers.setBounds(39, 34, 660, 100);
-		mainPane.add(intFrameFlippers);
+		mainPanel.add(intFrameFlippers);
 		intFrameFlippers.setMinimumSize(new Dimension(660, 100));
 		intFrameFlippers.setFocusable(false);
 		intFrameFlippers.setRequestFocusEnabled(false);
@@ -157,13 +185,10 @@ public class Application extends JFrame {
 		intFrameFlippers.getContentPane().add(flipperPanel);
 		
 		
-		setFocusTraversalPolicy(new FocusTraversalOnArray(new Component[]{txtUserInput, flipperPanel, dataPanelMenu, btnOpenFile, btnClearData}));
-		
-		
-		JInternalFrame intFrameData = new JInternalFrame("Data Panel");
+
 		intFrameData.setIconifiable(true);
 		intFrameData.setBounds(228, 146, 300, 250);
-		mainPane.add(intFrameData);
+		mainPanel.add(intFrameData);
 		
 		
 		intFrameData.setVerifyInputWhenFocusTarget(false);
@@ -172,14 +197,13 @@ public class Application extends JFrame {
 		intFrameData.setResizable(true);
 		intFrameData.getContentPane().setLayout(new BorderLayout(0, 0));
 		
-		dataPanelMenu = new JPanel();
 		intFrameData.getContentPane().add(dataPanelMenu, BorderLayout.NORTH);
 		
-		btnOpenFile = new JButton("Browse File...");
+		
 		
 		dataPanelMenu.add(btnOpenFile);
 		
-		JLabel lblOrDropA = new JLabel("or drop a text file");
+		
 		dataPanelMenu.add(lblOrDropA);		
 		
 		btnOpenFile.addActionListener(new ActionListener() {
@@ -205,10 +229,10 @@ public class Application extends JFrame {
 		intFrameData.getContentPane().add(scrollPane, BorderLayout.CENTER);
 		intFrameData.setVisible(true);
 		
-		JPanel panel = new JPanel();
+		
 		intFrameData.getContentPane().add(panel, BorderLayout.SOUTH);
 		
-		JButton btnLoadToFlippers = new JButton("Load to Flippers");
+		
 		btnLoadToFlippers.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				flipperPanel.loadDataFromText(txtAreaData.getText().split("\\s"));
@@ -216,46 +240,35 @@ public class Application extends JFrame {
 		});
 		panel.add(btnLoadToFlippers);
 		
-		btnClearData = new JButton("Clear");
+		
 		btnClearData.setBackground(Color.PINK);
 		panel.add(btnClearData);
+		intFrameData.setFocusTraversalPolicy(new FocusTraversalOnArray(new Component[]{btnOpenFile, txtAreaData, btnLoadToFlippers, btnClearData, intFrameData.getContentPane(), dataPanelMenu, lblOrDropA, scrollPane, panel}));
+		
+		bottomBarPanel = new JPanel();
+		btnMyHomepage = new JButton("Visit my page");
+		desktopPane.add(bottomBarPanel, BorderLayout.SOUTH);
+		bottomBarPanel.setLayout(new BorderLayout(0, 0));
+		btnMyHomepage.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				
+				Desktop desktop = Desktop.isDesktopSupported() ? Desktop.getDesktop() : null;
+			    if (desktop != null && desktop.isSupported(Desktop.Action.BROWSE)) {
+			        try {
+			            desktop.browse(new URI("http://bit.ly/pixport"));
+			        } catch (Exception e) { e.printStackTrace(); }
+			    }
+			    
+			}
+		});
+		bottomBarPanel.add(btnMyHomepage, BorderLayout.EAST);
+		setFocusTraversalPolicy(new FocusTraversalOnArray(new Component[]{txtUserInput, flipperPanel, dataPanelMenu, btnOpenFile, btnClearData}));
 		btnClearData.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				txtAreaData.setText("");
 				flipperPanel.clearDataList();
 			}
 		});
-		
-		
-		// ************* Flipper Frame ********************************
-			
-		btnDisplay = new JButton("Display");
-		btnDisplay.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				flipperPanel.btnDisplayActionPerformed();
-			}
-		});
-		appMainMenu.add(btnDisplay);
-		
-		btnGenerate = new JButton("Generate");
-		btnGenerate.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				flipperPanel.btnGenerateActionPerformed(e);
-			}
-		});
-		appMainMenu.add(btnGenerate);
-		
-		btnClear = new JButton("Clear");
-		btnClear.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				flipperPanel.btnClearActionPerformed();
-			}
-		});
-		appMainMenu.add(btnClear);
-		
-		// Drag and Drop listener
-		MyDragDropListener myDragDropListener = new MyDragDropListener(flipperPanel);
-		new DropTarget(this.getContentPane(), myDragDropListener);
 		//new DropTarget(txtAreaData, myDragDropListener);
 		
 	}
