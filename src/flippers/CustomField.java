@@ -12,7 +12,8 @@ public class CustomField extends JTextField {
          super(size);
      }
  
-     protected Document createDefaultModel() {
+     @Override
+	protected Document createDefaultModel() {
          return new JNumberDocument(this);
      }
  
@@ -24,17 +25,19 @@ public class CustomField extends JTextField {
             this.field = field;
         }
  
-         public void insertString(int offs, String str, AttributeSet a)
+        @Override
+		public void insertString(int offs, String str, AttributeSet a)
              throws BadLocationException {
  
              if (str == null || field.getText().length() >= flippers.NamePicker.NUMBER_OF_FLIPPERS) {
                  return;
              }
-             char[] chars = str.toUpperCase().toCharArray();
+             str = str.toUpperCase();
              String allowedInput = new String();
-             for (int i = 0; i < chars.length; i++) {
-                 if (Character.isLetter(chars[i]) || chars[i] == ' ')
-                     allowedInput += chars[i];
+             for (int i = 0; i < str.length(); i++) {
+                 if (MyApplication.ALLOWED_CHARS.contains(str.substring(i, i+1))) {
+                     allowedInput += str.charAt(i);
+                 }
              }
              super.insertString(offs, allowedInput, a);
          }

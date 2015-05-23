@@ -1,25 +1,20 @@
 package flippers;
 
+import static java.lang.System.out;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Desktop;
 import java.awt.EventQueue;
 import java.awt.Font;
-import java.awt.SplashScreen;
-
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.JFileChooser;
-import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.UIManager;
 import javax.swing.JButton;
 import javax.swing.JDesktopPane;
-
-import java.awt.FlowLayout;
-
 import javax.swing.JInternalFrame;
 
 import java.awt.datatransfer.DataFlavor;
@@ -29,13 +24,9 @@ import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.List;
 
-import javax.swing.JTextField;
 import javax.swing.JTextArea;
-import javax.swing.JEditorPane;
-import javax.swing.JTextPane;
 import javax.swing.JLabel;
 
 import java.awt.Dimension;
@@ -44,6 +35,10 @@ import org.eclipse.wb.swing.FocusTraversalOnArray;
 
 import java.awt.Component;
 import java.awt.Cursor;
+import javax.swing.JComboBox;
+import javax.swing.DefaultComboBoxModel;
+import javax.swing.JList;
+import javax.swing.AbstractListModel;
 
 public class MyApplication extends JFrame {
 
@@ -57,6 +52,7 @@ public class MyApplication extends JFrame {
 	private JButton btnMyHomepage;
 	private JPanel bottomBarPanel;
 	private JPanel mainPanel;
+	public static final String ALLOWED_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789. ";
 	
 	/**
 	 * Launch the MyApplication.
@@ -67,14 +63,9 @@ public class MyApplication extends JFrame {
 		} catch (Throwable e) {
 			e.printStackTrace();
 		}
-		
-		try {
-			//UIManager.setLookAndFeel("com.seaglasslookandfeel.SeaGlassLookAndFeel");
-			//UIManager.setLookAndFeel("ch.randelshofer.quaqua.QuaquaLookAndFeel");
-		} catch (Throwable e) {
-			e.printStackTrace();
-		}
+
 		EventQueue.invokeLater(new Runnable() {
+			@Override
 			public void run() {
 				try {
 					MyApplication frame = new MyApplication();
@@ -90,9 +81,6 @@ public class MyApplication extends JFrame {
 	/**
 	 * Create the frame.
 	 */
-	
-	
-	
 	public MyApplication() {
 		
 		// Initialise application layout **************************************
@@ -119,11 +107,12 @@ public class MyApplication extends JFrame {
 		dataPanelMenu = new JPanel();
 		JLabel lblOrDropA = new JLabel("or drop a text file");
 		JPanel panel = new JPanel();
-		JButton btnLoadToFlippers = new JButton("Load to Flippers");
 		btnClearData = new JButton("Clear");
 		topBarPanel = new JPanel();
 		btnDisplay = new JButton("Display");
 		txtUserInput = new CustomField(flippers.NamePicker.NUMBER_OF_FLIPPERS);
+		final JComboBox delimiterComboBox = new JComboBox();
+		
 		// end ****************************************************************
 
 		
@@ -138,6 +127,7 @@ public class MyApplication extends JFrame {
 		
 		txtUserInput.setToolTipText("Enter your own string");
 		txtUserInput.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				flipperPanel.btnDisplayActionPerformed();
 			}
@@ -151,6 +141,7 @@ public class MyApplication extends JFrame {
 		
 		// ************* Flipper Frame ********************************
 		btnDisplay.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				flipperPanel.btnDisplayActionPerformed();
 			}
@@ -159,6 +150,7 @@ public class MyApplication extends JFrame {
 		
 		btnGenerate = new JButton("Generate");
 		btnGenerate.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				flipperPanel.btnGenerateActionPerformed(e);
 			}
@@ -167,6 +159,7 @@ public class MyApplication extends JFrame {
 		
 		btnClear = new JButton("Clear");
 		btnClear.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent e) {
 				flipperPanel.btnClearActionPerformed();
 			}
@@ -187,12 +180,11 @@ public class MyApplication extends JFrame {
 		
 
 		intFrameData.setIconifiable(true);
-		intFrameData.setBounds(228, 146, 300, 250);
+		intFrameData.setBounds(228, 146, 350, 250);
 		mainPanel.add(intFrameData);
 		
 		
 		intFrameData.setVerifyInputWhenFocusTarget(false);
-		intFrameData.setMaximizable(true);
 		intFrameData.setMinimumSize(new Dimension(300, 250));
 		intFrameData.setResizable(true);
 		intFrameData.getContentPane().setLayout(new BorderLayout(0, 0));
@@ -205,8 +197,23 @@ public class MyApplication extends JFrame {
 		
 		
 		dataPanelMenu.add(lblOrDropA);		
+		JButton btnLoadToFlippers = new JButton("Load Data");
+		dataPanelMenu.add(btnLoadToFlippers);
+		
+		
+		btnLoadToFlippers.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				String delimiter = (String) delimiterComboBox.getSelectedItem();
+				delimiter = getRegexFromCombo(delimiter);
+				
+				flipperPanel.loadDataFromText(txtAreaData.getText().split(delimiter));
+			}
+		});
+		intFrameData.setFocusTraversalPolicy(new FocusTraversalOnArray(new Component[]{btnOpenFile, txtAreaData}));
 		
 		btnOpenFile.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				JFileChooser chooser = new JFileChooser();
 		        FileNameExtensionFilter filter = new FileNameExtensionFilter("Text file", "txt");
@@ -232,24 +239,35 @@ public class MyApplication extends JFrame {
 		
 		intFrameData.getContentPane().add(panel, BorderLayout.SOUTH);
 		
+		JLabel lblDelimiter = new JLabel("Delimiter:");
+		panel.add(lblDelimiter);
 		
-		btnLoadToFlippers.addActionListener(new ActionListener() {
+		
+		delimiterComboBox.setModel(new DefaultComboBoxModel(new String[] {"comma (,)", "colon (:)", "semi-colon (;)", "whitespace (\\t )"}));
+		delimiterComboBox.setSelectedIndex(3);
+		delimiterComboBox.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				flipperPanel.loadDataFromText(txtAreaData.getText().split("\\s"));
+				String delimiter = (String) delimiterComboBox.getSelectedItem();
+				delimiter = getRegexFromCombo(delimiter);
+				
+				String currentInput = txtAreaData.getText();
+				//currentInput = currentInput.replaceAll("\n", "");
+				currentInput = currentInput.replaceAll(delimiter, "\n");
+				txtAreaData.setText(currentInput);
 			}
 		});
-		panel.add(btnLoadToFlippers);
+		panel.add(delimiterComboBox);
 		
 		
 		btnClearData.setBackground(Color.PINK);
 		panel.add(btnClearData);
-		intFrameData.setFocusTraversalPolicy(new FocusTraversalOnArray(new Component[]{btnOpenFile, txtAreaData, btnLoadToFlippers, btnClearData, intFrameData.getContentPane(), dataPanelMenu, lblOrDropA, scrollPane, panel}));
 		
 		bottomBarPanel = new JPanel();
 		btnMyHomepage = new JButton("Visit my page");
 		desktopPane.add(bottomBarPanel, BorderLayout.SOUTH);
 		bottomBarPanel.setLayout(new BorderLayout(0, 0));
 		btnMyHomepage.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				
 				Desktop desktop = Desktop.isDesktopSupported() ? Desktop.getDesktop() : null;
@@ -264,13 +282,22 @@ public class MyApplication extends JFrame {
 		bottomBarPanel.add(btnMyHomepage, BorderLayout.EAST);
 		setFocusTraversalPolicy(new FocusTraversalOnArray(new Component[]{txtUserInput, flipperPanel, dataPanelMenu, btnOpenFile, btnClearData}));
 		btnClearData.addActionListener(new ActionListener() {
+			@Override
 			public void actionPerformed(ActionEvent arg0) {
 				txtAreaData.setText("");
 				flipperPanel.clearDataList();
 			}
 		});
-		//new DropTarget(txtAreaData, myDragDropListener);
 		
+		//flipperPanel.displayFlipperPanel.printGreeting("welcome");
+	}
+	
+	public String getRegexFromCombo(String delimiter) {
+		String[] pieces = delimiter.split("[()]");
+		delimiter = pieces[pieces.length - 1];
+		delimiter = String.format("[%s%s]+", delimiter, "\\n");
+		out.println(delimiter);
+		return delimiter;
 	}
 	
 	class MyDragDropListener implements DropTargetListener {

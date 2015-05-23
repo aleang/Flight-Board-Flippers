@@ -1,12 +1,11 @@
 package flippers;
-import static java.lang.System.out;
-
 import java.awt.Graphics;
 import java.awt.Image;
 import java.util.ArrayList;
 import java.util.HashMap;
 
 import javax.swing.Timer;
+import static java.lang.System.out;
 
 public class Display {
 	HashMap<Character, Image> imagesHashMap;
@@ -16,7 +15,7 @@ public class Display {
 	
 	public Display(javax.swing.Timer t2, int numberOfFlippers) {
 		flippersList = new ArrayList<Flipper>();
-		this.t = t2;
+		Display.t = t2;
 		charTileSlots = new char[numberOfFlippers];
 		imagesHashMap = new HashMap<Character, Image>();
 	}
@@ -25,17 +24,13 @@ public class Display {
 		imagesHashMap.put(givenChar,  givenImage);
 	}
 	public void printGreeting(String string) {
-		charArray = string.toCharArray();
+		
 		for (int i = 0; i < charTileSlots.length; i++){
 			Flipper e = new Flipper(charTileSlots, i);
-			if (i < charArray.length) {
-				e.assignNewChar(charArray[i]);
-			} else {
-				// remaining flippers are 'spaces'
-				e.assignNewChar(' ');
-			}
+			e.assignNewChar(' ');
 			flippersList.add(e);
 		}
+		print(string);
 	}
 
 	public void printf(String format, Object ... objs) {
@@ -43,13 +38,13 @@ public class Display {
 	}
 	public void print(String word) {
 	    
-	    
 	    // tidy up and sanitise 'word'
 	    word = word.toUpperCase();
 	    String temp = "";
 	    for (char ch : word.toCharArray()) {
 	    	if (Character.isLetter(ch) 
 	    			|| ch == ' ' 
+	    			|| ch == '.'
 	    			|| Character.isDigit(ch)
 	    			) 
 	    		temp += ch;
