@@ -45,7 +45,7 @@ public class MyApplication extends JFrame {
 	private JPanel contentPane;
 	private NamePicker flipperPanel;
 	private CustomField txtUserInput;
-	public JButton btnDisplay, btnGenerate, btnClear,
+	public JButton btnDisplay, btnPickOne, btnClear,
 	btnOpenFile, btnClearData;
 	public JPanel topBarPanel, dataPanelMenu;
 	final JTextArea txtAreaData;
@@ -148,14 +148,14 @@ public class MyApplication extends JFrame {
 		});
 		topBarPanel.add(btnDisplay);
 		
-		btnGenerate = new JButton("Generate");
-		btnGenerate.addActionListener(new ActionListener() {
+		btnPickOne = new JButton("Pick One");
+		btnPickOne.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				flipperPanel.btnGenerateActionPerformed(e);
 			}
 		});
-		topBarPanel.add(btnGenerate);
+		topBarPanel.add(btnPickOne);
 		
 		btnClear = new JButton("Clear");
 		btnClear.addActionListener(new ActionListener() {
